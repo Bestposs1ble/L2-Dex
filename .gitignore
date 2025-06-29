@@ -1,0 +1,11 @@
+node_modules
+.cursor
+
+# Hardhat files
+/cache
+/artifacts
+
+
+/node_modules
+/test
+/ignition

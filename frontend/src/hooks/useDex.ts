@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { ethers } from 'ethers';
 
-// 这里将来会导入合约 ABI
-// import SimpleDEXAbi from '../abis/SimpleDEX.json';
-// import MockERC20Abi from '../abis/MockERC20.json';
+// 导入合约 ABI
+import SimpleDEXAbi from '../abis/SimpleDEX.json';
+import MockERC20Abi from '../abis/MockERC20.json';
 
 export function useDex() {
   const { address, isConnected, dexAddress, tokenAAddress, tokenBAddress, refreshBalances } = useWeb3();
@@ -23,20 +23,27 @@ export function useDex() {
     setError(null);
     
     try {
-      // 这里将来会实现实际的合约调用
-      // const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi, provider);
-      // const reserves = await dexContract.getReserves();
-      // const price = await dexContract.getPriceAtoB();
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi.abi, provider);
       
-      // 现在我们返回模拟数据
+      // 获取储备量
+      const reserves = await dexContract.getReserves();
+      
+      // 获取价格
+      const price = await dexContract.getPriceAtoB();
+      
       return {
-        reserveA: '10000',
-        reserveB: '20000',
-        price: '2.0',
+        reserveA: ethers.formatUnits(reserves[0], 18),
+        reserveB: ethers.formatUnits(reserves[1], 18),
+        price: ethers.formatUnits(price, 18),
       };
-    } catch (err) {
+    } catch (err: any) {
       console.error('获取池子信息失败:', err);
+      // 针对流动性不足的特殊报错优化
+      if (err.reason && err.reason.includes('INSUFFICIENT_LIQUIDITY')) {
+        setError('池子暂无流动性，请先添加');
+        return null;
+      }
       setError('获取池子信息失败');
       return null;
     } finally {
@@ -56,23 +63,24 @@ export function useDex() {
     setTxHash(null);
     
     try {
-      // 这里将来会实现实际的合约调用
-      // const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // const signer = provider.getSigner();
-      // const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi, signer);
-      // const tokenContract = new ethers.Contract(tokenAAddress, MockERC20Abi, signer);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi.abi, signer);
+      const tokenContract = new ethers.Contract(tokenAAddress, MockERC20Abi.abi, signer);
       
-      // // 先授权
-      // const approveTx = await tokenContract.approve(dexAddress, ethers.utils.parseUnits(amountIn, 18));
-      // await approveTx.wait();
+      // 先授权
+      const amountInWei = ethers.parseUnits(amountIn, 18);
+      console.log(`授权 ${amountIn} TokenA...`);
+      const approveTx = await tokenContract.approve(dexAddress, amountInWei);
+      await approveTx.wait();
       
-      // // 然后兑换
-      // const tx = await dexContract.swapAForB(ethers.utils.parseUnits(amountIn, 18));
-      // const receipt = await tx.wait();
-      // setTxHash(receipt.transactionHash);
+      // 然后兑换
+      console.log(`兑换 ${amountIn} TokenA 为 TokenB...`);
+      const tx = await dexContract.swapAForB(amountInWei);
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
       
-      // 模拟交易成功
-      setTxHash('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
+      // 刷新余额
       await refreshBalances();
       return true;
     } catch (err) {
@@ -96,11 +104,24 @@ export function useDex() {
     setTxHash(null);
     
     try {
-      // 这里将来会实现实际的合约调用
-      // 与 swapAForB 类似，但调用的是 swapBForA 方法
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi.abi, signer);
+      const tokenContract = new ethers.Contract(tokenBAddress, MockERC20Abi.abi, signer);
       
-      // 模拟交易成功
-      setTxHash('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
+      // 先授权
+      const amountInWei = ethers.parseUnits(amountIn, 18);
+      console.log(`授权 ${amountIn} TokenB...`);
+      const approveTx = await tokenContract.approve(dexAddress, amountInWei);
+      await approveTx.wait();
+      
+      // 然后兑换
+      console.log(`兑换 ${amountIn} TokenB 为 TokenA...`);
+      const tx = await dexContract.swapBForA(amountInWei);
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
+      
+      // 刷新余额
       await refreshBalances();
       return true;
     } catch (err) {
@@ -124,31 +145,31 @@ export function useDex() {
     setTxHash(null);
     
     try {
-      // 这里将来会实现实际的合约调用
-      // const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // const signer = provider.getSigner();
-      // const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi, signer);
-      // const tokenAContract = new ethers.Contract(tokenAAddress, MockERC20Abi, signer);
-      // const tokenBContract = new ethers.Contract(tokenBAddress, MockERC20Abi, signer);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi.abi, signer);
+      const tokenAContract = new ethers.Contract(tokenAAddress, MockERC20Abi.abi, signer);
+      const tokenBContract = new ethers.Contract(tokenBAddress, MockERC20Abi.abi, signer);
       
-      // // 先授权 Token A
-      // const approveATx = await tokenAContract.approve(dexAddress, ethers.utils.parseUnits(amountA, 18));
-      // await approveATx.wait();
+      // 先授权 Token A
+      const amountAWei = ethers.parseUnits(amountA, 18);
+      console.log(`授权 ${amountA} TokenA...`);
+      const approveATx = await tokenAContract.approve(dexAddress, amountAWei);
+      await approveATx.wait();
       
-      // // 再授权 Token B
-      // const approveBTx = await tokenBContract.approve(dexAddress, ethers.utils.parseUnits(amountB, 18));
-      // await approveBTx.wait();
+      // 再授权 Token B
+      const amountBWei = ethers.parseUnits(amountB, 18);
+      console.log(`授权 ${amountB} TokenB...`);
+      const approveBTx = await tokenBContract.approve(dexAddress, amountBWei);
+      await approveBTx.wait();
       
-      // // 添加流动性
-      // const tx = await dexContract.addLiquidity(
-      //   ethers.utils.parseUnits(amountA, 18),
-      //   ethers.utils.parseUnits(amountB, 18)
-      // );
-      // const receipt = await tx.wait();
-      // setTxHash(receipt.transactionHash);
+      // 添加流动性
+      console.log(`添加流动性: ${amountA} TokenA + ${amountB} TokenB...`);
+      const tx = await dexContract.addLiquidity(amountAWei, amountBWei);
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
       
-      // 模拟交易成功
-      setTxHash('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
+      // 刷新余额
       await refreshBalances();
       return true;
     } catch (err) {
@@ -172,18 +193,18 @@ export function useDex() {
     setTxHash(null);
     
     try {
-      // 这里将来会实现实际的合约调用
-      // const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // const signer = provider.getSigner();
-      // const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi, signer);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const dexContract = new ethers.Contract(dexAddress, SimpleDEXAbi.abi, signer);
       
-      // // 移除流动性
-      // const tx = await dexContract.removeLiquidity(ethers.utils.parseUnits(lpAmount, 18));
-      // const receipt = await tx.wait();
-      // setTxHash(receipt.transactionHash);
+      // 移除流动性
+      const lpAmountWei = ethers.parseUnits(lpAmount, 18);
+      console.log(`移除流动性: ${lpAmount} LP...`);
+      const tx = await dexContract.removeLiquidity(lpAmountWei);
+      const receipt = await tx.wait();
+      setTxHash(receipt.hash);
       
-      // 模拟交易成功
-      setTxHash('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef');
+      // 刷新余额
       await refreshBalances();
       return true;
     } catch (err) {

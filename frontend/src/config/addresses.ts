@@ -1,0 +1,9 @@
+
+// 此文件由部署脚本自动生成，请勿手动修改
+// 最后更新时间: 2025/6/30 00:08:15
+
+export const CONTRACT_ADDRESSES = {
+  tokenA: "0x4d0dE559c76474d49df6aeaf966f1F14781E79F5",
+  tokenB: "0x127e24656Ab5bC5e114EeC47208C9346a08a4D65",
+  dex: "0x09412e9A09706473976C1DFf4f838EB68aBDBa78"
+};

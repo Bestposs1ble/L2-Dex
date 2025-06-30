@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useDex } from '../hooks/useDex';
+import TokenInput from '../components/TokenInput';
+import LoadingButton from '../components/LoadingButton';
+import TransactionStatus from '../components/TransactionStatus';
 
 const Swap: React.FC = () => {
   const { isConnected, tokenABalance, tokenBBalance } = useWeb3();
@@ -50,8 +53,8 @@ const Swap: React.FC = () => {
   };
 
   // 处理金额输入变化
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
   };
 
   // 处理滑点输入变化
@@ -92,19 +95,15 @@ const Swap: React.FC = () => {
           <option value="BtoA">TokenB → TokenA</option>
         </select>
       </div>
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">输入金额</label>
-        <input 
-          type="number" 
-          className="w-full p-2 rounded border" 
-          placeholder="输入数量" 
-          value={amount}
-          onChange={handleAmountChange}
-        />
-        <div className="text-sm text-gray-500 mt-1">
-          余额: {direction === 'AtoB' ? tokenABalance : tokenBBalance}
-        </div>
-      </div>
+      
+      <TokenInput 
+        label={direction === 'AtoB' ? 'TokenA 数量' : 'TokenB 数量'}
+        value={amount}
+        onChange={handleAmountChange}
+        balance={direction === 'AtoB' ? tokenABalance : tokenBBalance}
+        placeholder="输入数量"
+      />
+      
       <div className="mb-4">
         <label className="block mb-1 font-medium">滑点容忍度 (%)</label>
         <input 
@@ -119,22 +118,20 @@ const Swap: React.FC = () => {
         <span>实时价格: {price}</span>
         <span>Gas 费用: {estimatedGas}</span>
       </div>
-      <button 
-        className={`w-full py-2 ${
-          loading 
-            ? 'bg-gray-400' 
-            : 'bg-blue-500 hover:bg-blue-600'
-        } text-white rounded transition`}
+      
+      <LoadingButton 
+        loading={loading}
         onClick={handleSwap}
-        disabled={loading || !isConnected}
+        disabled={!isConnected || parseFloat(amount || '0') <= 0}
       >
-        {loading ? '处理中...' : 'Swap'}
-      </button>
-      <div className={`mt-4 text-center text-sm ${
-        error ? 'text-red-500' : txHash ? 'text-green-500' : 'text-gray-500'
-      }`}>
-        交易状态：{status}
-      </div>
+        Swap
+      </LoadingButton>
+      
+      <TransactionStatus
+        error={error}
+        txHash={txHash}
+        status={status}
+      />
     </div>
   );
 };

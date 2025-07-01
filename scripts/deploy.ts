@@ -48,7 +48,7 @@ async function main() {
   console.log(`已铸造 ${ethers.formatEther(mintAmount)} 个 TokenB 到部署者账户`);
 
   // ====== 初始化池子流动性 ======
-  const initAmount = ethers.parseEther("10000"); // 10000 tokens
+  const initAmount = ethers.parseEther("1000"); // 1000 tokens - 修改为1000个代币的流动性
   // 检查余额
   let balanceA = await tokenA.balanceOf(deployer.address);
   let balanceB = await tokenB.balanceOf(deployer.address);
@@ -60,7 +60,7 @@ async function main() {
   console.log('TokenA 授权:', ethers.formatUnits(allowanceA, 18));
   console.log('TokenB 授权:', ethers.formatUnits(allowanceB, 18));
   // 先授权
-  console.log("授权 SimpleDEX 合约 10000 TokenA 和 10000 TokenB...");
+  console.log("授权 SimpleDEX 合约 1000 TokenA 和 1000 TokenB...");
   await tokenA.approve(dexAddress, initAmount);
   await tokenB.approve(dexAddress, initAmount);
   // 再次检查授权
@@ -72,7 +72,7 @@ async function main() {
     throw new Error('授权额度不足，无法添加流动性');
   }
   // 添加流动性
-  console.log("向池子添加初始流动性: 10000 TokenA + 10000 TokenB...");
+  console.log("向池子添加初始流动性: 1000 TokenA + 1000 TokenB...");
   await dex.addLiquidity(initAmount, initAmount);
   console.log("初始流动性添加完成!");
   // ====== END ======

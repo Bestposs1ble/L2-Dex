@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAccount, useNetwork, useBalance, useSwitchNetwork } from 'wagmi';
 import { ethers } from 'ethers';
 
@@ -14,22 +14,11 @@ declare global {
   }
 }
 
-// 导入合约地址配置
-// 如果配置文件不存在，使用默认地址
-let tokenAAddress = '0x4d0dE559c76474d49df6aeaf966f1F14781E79F5';
-let tokenBAddress = '0x127e24656Ab5bC5e114EeC47208C9346a08a4D65';
-let dexAddress = '0x09412e9A09706473976C1DFf4f838EB68aBDBa78';
-
-// 尝试导入合约地址配置
-try {
-  const { CONTRACT_ADDRESSES } = require('../config/addresses');
-  tokenAAddress = CONTRACT_ADDRESSES.tokenA;
-  tokenBAddress = CONTRACT_ADDRESSES.tokenB;
-  dexAddress = CONTRACT_ADDRESSES.dex;
-  console.log('已加载合约地址配置:', CONTRACT_ADDRESSES);
-} catch (error) {
-  console.warn('未找到合约地址配置，使用默认地址');
-}
+// 用 import 方式导入合约地址配置
+import { CONTRACT_ADDRESSES } from '../config/addresses';
+const tokenAAddress = CONTRACT_ADDRESSES.tokenA;
+const tokenBAddress = CONTRACT_ADDRESSES.tokenB;
+const dexAddress = CONTRACT_ADDRESSES.dex;
 
 // 支持的网络
 const SUPPORTED_NETWORKS = [

@@ -15,9 +15,9 @@ export const NETWORK_CONFIG = {
   },
   // Ganache 本地网络
   ganache: {
-    rpcUrl: process.env.GANACHE_URL || "http://127.0.0.1:8545",
+    rpcUrl: process.env.GANACHE_URL || "http://127.0.0.1:7545",
     chainId: 1337,
-    explorerUrl: "http://localhost:8545"
+    explorerUrl: "http://localhost:7545"
   }
 };
 

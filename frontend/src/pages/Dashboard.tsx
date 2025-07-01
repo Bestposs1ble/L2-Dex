@@ -1,35 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useDex } from '../hooks/useDex';
+import { useTransactionHistory, TransactionType } from '../hooks/useTransactionHistory';
 import { ethers } from 'ethers';
-
-interface Transaction {
-  id: number;
-  type: 'Swap' | 'AddLiquidity' | 'RemoveLiquidity';
-  from?: string;
-  to?: string;
-  tokenA?: string;
-  tokenB?: string;
-  amount?: string;
-  timestamp: number;
-  hash?: string;
-}
-
-// 模拟交易历史数据
-const mockTransactions: Transaction[] = [
-  { id: 1, type: 'Swap', from: 'TokenA', to: 'TokenB', amount: '10', timestamp: new Date().getTime() - 3600000 },
-  { id: 2, type: 'AddLiquidity', tokenA: '20', tokenB: '40', timestamp: new Date().getTime() - 7200000 },
-  { id: 3, type: 'RemoveLiquidity', tokenA: '5', tokenB: '10', timestamp: new Date().getTime() - 86400000 },
-];
+import TransactionHistory from '../components/TransactionHistory';
 
 const Dashboard: React.FC = () => {
   const { isConnected, lpBalance, dexAddress } = useWeb3();
   const { getPoolInfo } = useDex();
+  const { 
+    transactions, 
+    loading: txLoading, 
+    error: txError, 
+    fetchTransactionHistory,
+    filterTransactions,
+    filterType,
+    filterAddress
+  } = useTransactionHistory('All');
   
   const [reserveA, setReserveA] = useState<string>('--');
   const [reserveB, setReserveB] = useState<string>('--');
   const [price, setPrice] = useState<string>('--');
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [loading, setLoading] = useState(false);
   const [hasLiquidity, setHasLiquidity] = useState(false);
   const [totalLpSupply, setTotalLpSupply] = useState<string>('0');
@@ -79,10 +70,14 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [isConnected, getPoolInfo, dexAddress]);
 
-  // 格式化时间戳
-  const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
+  // 手动刷新交易历史
+  const handleRefreshHistory = () => {
+    fetchTransactionHistory(20);
+  };
+
+  // 处理交易历史过滤
+  const handleFilterTransactions = (type: TransactionType, address: string | null) => {
+    filterTransactions(type, address);
   };
 
   return (
@@ -124,41 +119,17 @@ const Dashboard: React.FC = () => {
       )}
       
       <div className="mt-6">
-        <h3 className="font-bold mb-2">最近交易历史</h3>
-        <div className="text-sm text-gray-500 mb-2">
-          注意：当前显示的是模拟数据。未来版本将实现链上交易历史查询功能。
-        </div>
-        {transactions.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border-b text-left">类型</th>
-                  <th className="py-2 px-4 border-b text-left">详情</th>
-                  <th className="py-2 px-4 border-b text-left">时间</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((tx) => (
-                  <tr key={tx.id}>
-                    <td className="py-2 px-4 border-b">{tx.type}</td>
-                    <td className="py-2 px-4 border-b">
-                      {tx.type === 'Swap' 
-                        ? `${tx.amount} ${tx.from} → ${tx.to}`
-                        : tx.type === 'AddLiquidity'
-                          ? `添加: ${tx.tokenA} TokenA + ${tx.tokenB} TokenB`
-                          : `移除: ${tx.tokenA} TokenA + ${tx.tokenB} TokenB`
-                      }
-                    </td>
-                    <td className="py-2 px-4 border-b">{formatTime(tx.timestamp)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">-- 暂无数据 --</div>
-        )}
+        <h3 className="font-bold mb-2">交易历史</h3>
+        <TransactionHistory 
+          transactions={transactions}
+          loading={txLoading}
+          error={txError}
+          onRefresh={handleRefreshHistory}
+          onFilter={handleFilterTransactions}
+          filterType={filterType}
+          filterAddress={filterAddress}
+          showFilters={true}
+        />
       </div>
     </div>
   );

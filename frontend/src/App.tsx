@@ -31,8 +31,8 @@ const ganache = {
     symbol: 'ETH',
   },
   rpcUrls: {
-    public: { http: ['http://localhost:8545'] },
-    default: { http: ['http://localhost:8545'] },
+    public: { http: ['http://localhost:7545'] },
+    default: { http: ['http://localhost:7545'] },
   },
 };
 
@@ -42,8 +42,10 @@ const { chains, publicClient } = configureChains(
   [publicProvider()]
 );
 
-// 使用环境变量或默认值
-const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || '12345678901234567890123456789012';
+// 使用一个有效的projectId
+// 这里我们使用一个固定的projectId，仅用于开发测试
+// 在生产环境中应该使用环境变量并注册一个真实的projectId
+const projectId = '3fbb6bba6f1de962d911bb5b5c9dba88';
 
 const { connectors } = getDefaultWallets({
   appName: 'L2 DEX',

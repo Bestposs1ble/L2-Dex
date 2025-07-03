@@ -176,14 +176,4 @@ npm run deploy:arbitrum
 - `mint(address to, uint256 amount)` - 铸造代币
 - `faucet(uint256 amount)` - 为调用者铸造代币
 
-## 贡献指南
-
-1. Fork 本仓库
-2. 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 打开一个 Pull Request
-
-## 许可证
-
-MIT
+项目演示：https://dex.bestpossible.space/
